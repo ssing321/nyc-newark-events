@@ -10,6 +10,7 @@ export const EVENT_CATEGORIES = [
 export type EventCategory = (typeof EVENT_CATEGORIES)[number];
 export type EventArea = "both" | "new-york" | "newark";
 export type DateRange = "today" | "weekend" | "week" | "month" | "custom";
+export type DiscoveryMode = "tonight" | "weekend" | "under-50" | "surprise";
 
 export interface EventAddress {
   line1?: string;
@@ -69,6 +70,7 @@ export interface EventFilters {
   area: EventArea;
   category: EventCategory | "All";
   range: DateRange;
+  mode?: DiscoveryMode;
   query: string;
   start?: string;
   end?: string;

@@ -98,6 +98,41 @@ function shiftCalendarDate(
   );
 }
 
+export function newYorkCalendarDate(offsetDays = 0) {
+  const now = new Date();
+  const current = dateParts(now);
+  return shiftCalendarDate(current.year, current.month, current.day, offsetDays);
+}
+
+export function eventLocalDate(value: string) {
+  const parts = dateParts(new Date(value));
+  return isoDate(parts.year, parts.month, parts.day);
+}
+
+export function formatNewYorkMonthYear(value = new Date()) {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: TIME_ZONE,
+    month: "short",
+    year: "numeric",
+  }).format(value).toUpperCase();
+}
+
+export function formatEventDay(value: string) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: TIME_ZONE,
+    weekday: "short",
+    month: "short",
+    day: "2-digit",
+  }).formatToParts(new Date(value));
+  const get = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((part) => part.type === type)?.value ?? "";
+  return {
+    weekday: get("weekday").toUpperCase(),
+    month: get("month").toUpperCase(),
+    day: get("day"),
+  };
+}
+
 export function resolveDateRange(
   range: "today" | "weekend" | "week" | "month" | "custom",
   customStart?: string,

@@ -18,7 +18,7 @@ export function EventImage({ src, alt, category, priority = false, sizes }: Even
     return (
       <div className="image-fallback" role="img" aria-label={`${alt} — image unavailable`}>
         <span>{category}</span>
-        <strong aria-hidden="true">N+</strong>
+        <strong aria-hidden="true">S↗</strong>
       </div>
     );
   }

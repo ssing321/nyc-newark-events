@@ -1,10 +1,22 @@
-import type { DateRange, EventArea, EventCategory, EventFilters } from "./types";
+import type {
+  DateRange,
+  DiscoveryMode,
+  EventArea,
+  EventCategory,
+  EventFilters,
+} from "./types";
 
 type SearchParamValue = string | string[] | undefined;
 export type RawSearchParams = Record<string, SearchParamValue>;
 
 const AREAS = new Set<EventArea>(["both", "new-york", "newark"]);
 const RANGES = new Set<DateRange>(["today", "weekend", "week", "month", "custom"]);
+const DISCOVERY_MODES = new Set<DiscoveryMode>([
+  "tonight",
+  "weekend",
+  "under-50",
+  "surprise",
+]);
 const CATEGORY_BY_SLUG: Record<string, EventCategory | "All"> = {
   all: "All",
   sports: "Sports",
@@ -45,13 +57,17 @@ function date(value: SearchParamValue) {
 export function parseEventFilters(params: RawSearchParams): EventFilters {
   const areaValue = one(params.area) as EventArea;
   const rangeValue = one(params.range) as DateRange;
+  const modeValue = one(params.mode) as DiscoveryMode;
   const category = CATEGORY_BY_SLUG[one(params.category) ?? "all"] ?? "All";
   const parsedPage = Number.parseInt(one(params.page) ?? "1", 10);
+  const mode = DISCOVERY_MODES.has(modeValue) ? modeValue : undefined;
+  const range = mode === "tonight" ? "today" : mode === "weekend" ? "weekend" : rangeValue;
 
   return {
     area: AREAS.has(areaValue) ? areaValue : "both",
     category,
-    range: RANGES.has(rangeValue) ? rangeValue : "month",
+    range: RANGES.has(range) ? range : "month",
+    mode,
     query: cleanQuery(params.q),
     start: date(params.start),
     end: date(params.end),

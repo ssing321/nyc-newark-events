@@ -1,7 +1,21 @@
 import type { Metadata } from "next";
+import { Barlow_Condensed, Space_Grotesk } from "next/font/google";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import "./globals.css";
+
+const displayFont = Barlow_Condensed({
+  subsets: ["latin"],
+  weight: ["600", "700", "800", "900"],
+  variable: "--font-display",
+  display: "swap",
+});
+
+const bodyFont = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-body",
+  display: "swap",
+});
 
 const siteUrl = process.env.VERCEL_URL
   ? new URL(`https://${process.env.VERCEL_URL}`)
@@ -10,29 +24,29 @@ const siteUrl = process.env.VERCEL_URL
 export const metadata: Metadata = {
   metadataBase: siteUrl,
   title: {
-    default: "NYC + Newark Events",
-    template: "%s | NYC + Newark Events",
+    default: "SCENE — NYC / North Jersey Events",
+    template: "%s | SCENE",
   },
-  description: "Discover upcoming sports, concerts, theatre, comedy, and family events across New York City and Newark.",
+  description: "Find your next move across NYC and North Jersey—music, sports, theatre, comedy, family events, and more.",
   openGraph: {
-    title: "NYC + Newark Events",
-    description: "Make a plan. See something live across NYC and Newark.",
+    title: "SCENE — Find Your Next Move",
+    description: "Event discovery for NYC and North Jersey.",
     type: "website",
-    images: [{ url: "/og.png", width: 1200, height: 630, alt: "NYC + Newark Events — Make a plan. See something live." }],
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "SCENE — Find your next move in NYC and North Jersey." }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "NYC + Newark Events",
-    description: "Make a plan. See something live across NYC and Newark.",
-    images: ["/og.png"],
+    title: "SCENE — Find Your Next Move",
+    description: "Event discovery for NYC and North Jersey.",
+    images: ["/opengraph-image"],
   },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" data-scroll-behavior="smooth">
+    <html lang="en" data-scroll-behavior="smooth" className={`${displayFont.variable} ${bodyFont.variable}`}>
       <body>
-        <a className="skip-link" href="#events">Skip to events</a>
+        <a className="skip-link" href="#main-content">Skip to content</a>
         <SiteHeader />
         {children}
         <SiteFooter />

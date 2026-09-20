@@ -30,6 +30,11 @@ function matchingEvents(events: Event[], filters: EventFilters, now: number) {
   return dedupeEvents(events)
     .filter((event) => new Date(event.startDateTime).getTime() >= now)
     .filter((event) => filters.category === "All" || event.category === filters.category)
+    .filter(
+      (event) =>
+        filters.mode !== "under-50" ||
+        (event.priceMin !== undefined && event.priceMin <= 50),
+    )
     .filter((event) => matchesText(event, filters.query))
     .sort(
       (first, second) =>

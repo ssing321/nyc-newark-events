@@ -4,7 +4,7 @@ import type { EventCategory } from "@/lib/events/types";
 export function CategoryBadge({ category }: { category: EventCategory }) {
   return (
     <span className="category-badge" data-category={CATEGORY_SLUGS[category]}>
-      {category}
+      {category === "Arts & Theatre" ? "ARTS / THEATRE" : category.toUpperCase()}
     </span>
   );
 }

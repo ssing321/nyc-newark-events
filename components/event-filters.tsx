@@ -21,6 +21,7 @@ export function EventFiltersPanel({ filters, rangeStart, rangeEnd }: FiltersProp
 
   const navigate = useCallback((updates: Record<string, string | undefined>) => {
     const next = new URLSearchParams(searchParams.toString());
+    if ("area" in updates || "category" in updates || "range" in updates) next.delete("mode");
     Object.entries(updates).forEach(([key, value]) => {
       if (!value || value === "all" || (key === "area" && value === "both") || (key === "range" && value === "month")) {
         next.delete(key);
@@ -45,10 +46,10 @@ export function EventFiltersPanel({ filters, rangeStart, rangeEnd }: FiltersProp
     <section className="filters-panel" aria-labelledby="filter-heading" aria-busy={pending}>
       <div className="filter-heading-row">
         <div>
-          <p className="eyebrow">Find your kind of night</p>
-          <h2 id="filter-heading">Explore upcoming events</h2>
+          <p className="utility-label">FILTER THE CITY</p>
+          <h3 id="filter-heading">Dial in the listings.</h3>
         </div>
-        <Link className="reset-link focus-ring" href="/#events">Reset filters</Link>
+        <Link className="reset-link focus-ring" href="/#events">Reset / all events</Link>
       </div>
 
       <div className="filter-grid">
@@ -60,7 +61,7 @@ export function EventFiltersPanel({ filters, rangeStart, rangeEnd }: FiltersProp
               type="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Artist, team, venue…"
+              placeholder="Artist, team, event, venue…"
               autoComplete="off"
             />
           </span>
@@ -69,9 +70,9 @@ export function EventFiltersPanel({ filters, rangeStart, rangeEnd }: FiltersProp
         <label className="field">
           <span>Area</span>
           <select value={filters.area} onChange={(event) => navigate({ area: event.target.value })}>
-            <option value="both">Both</option>
-            <option value="new-york">New York</option>
-            <option value="newark">Newark / North Jersey</option>
+            <option value="both">NYC + North Jersey</option>
+            <option value="new-york">NYC</option>
+            <option value="newark">North Jersey</option>
           </select>
         </label>
 

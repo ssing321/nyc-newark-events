@@ -1,6 +1,8 @@
-# NYC + Newark Events
+# SCENE
 
-A polished event-discovery application for finding upcoming sports, concerts, theatre, comedy, family, and other live events across New York City and Newark/North Jersey.
+**NYC / NORTH JERSEY — FIND YOUR NEXT MOVE.**
+
+SCENE is an editorial event-discovery product for finding upcoming sports, concerts, theatre, comedy, family, and other live events across New York City and North Jersey.
 
 Event listings come from Ticketmaster. The application does not sell tickets: every purchase link sends the visitor to the original provider.
 
@@ -14,6 +16,8 @@ The application uses the Next.js App Router and keeps the data boundary on the s
 4. Results are geographically constrained, deduplicated, filtered, sorted, and paginated.
 5. UI components receive normalized event data only—never provider payloads or credentials.
 
+The V0.2 discovery layer operates entirely on normalized events. Its deterministic scoring considers recency, known pricing, venue significance, metadata quality, area, and category, then applies category/venue diversity. Plan My Night uses the same layer through a credential-safe Route Handler. Saved events remain in browser `localStorage`; no account or database is involved.
+
 NYC and Newark/North Jersey are queried as separate, state-constrained geographic regions. This improves coverage of venues on both sides of the Hudson while preventing Manhattan results from leaking into the Newark filter. Provider pages are normalized before being placed in Next.js's 15-minute server cache; the API key never becomes part of a cached URL or client response.
 
 ## Tech stack
@@ -24,6 +28,8 @@ NYC and Newark/North Jersey are queried as separate, state-constrained geographi
 - Tailwind CSS 4 toolchain plus a small, token-based product stylesheet
 - Ticketmaster Discovery API
 - Vercel-compatible server rendering and caching
+- `next/font` self-hosted open-source typography
+- Native Web Share API and browser `localStorage`
 
 No database, authentication system, analytics SDK, map SDK, external cache, or paid search service is used.
 
@@ -96,7 +102,9 @@ The application uses standard Next.js server APIs and does not require additiona
 ```text
 app/
   api/events/             Validated, credential-safe JSON Route Handlers
+  api/recommendations/    Deterministic Plan My Night recommendations
   events/[id]/            Event detail route and loading/not-found states
+  saved/                   Device-local saved event view
   error.tsx               Friendly route error boundary
   loading.tsx             Catalog loading shell
 components/               Reusable UI and small interactive client boundaries
@@ -107,6 +115,7 @@ lib/
     types.ts              Normalized domain model and provider contract
     normalize.ts          Ticketmaster-to-domain mapping
     dedupe.ts             Cross-provider event deduplication
+    recommendations.ts    Explainable scoring and diversity selection
     query.ts              Query parameter validation/sanitization
     service.ts            Search, filtering, pagination, and provider orchestration
 ```
@@ -154,5 +163,7 @@ If traffic grows beyond the free allowances, the application should be re-evalua
 - Custom date ranges are capped at 90 days.
 - Dates and times render in `America/New_York`.
 - Descriptions use Ticketmaster information/notes when available; otherwise they are generated deterministically from normalized event fields.
+- Top Picks, quick modes, and Plan My Night use deterministic application-side ranking—never an AI or paid recommendation service.
+- Saved events live only in the current browser. They survive refreshes but do not sync between devices.
 - The catalog and detail pages display friendly empty, loading, not-found, and provider-error states.
 - Provider fetches revalidate approximately every 15 minutes. Browser-facing API responses also advertise a 15-minute CDN cache window.

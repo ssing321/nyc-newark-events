@@ -5,7 +5,9 @@ import { CategoryBadge } from "@/components/category-badge";
 import { EventCard, formatPrice } from "@/components/event-card";
 import { EventImage } from "@/components/event-image";
 import { ErrorState } from "@/components/error-state";
-import { formatEventDateLong, formatEventTime } from "@/lib/dates";
+import { SaveButton } from "@/components/save-button";
+import { ShareButton } from "@/components/share-button";
+import { formatEventDateLong, formatEventDay, formatEventTime } from "@/lib/dates";
 import { fullAddress, getEvent, getMoreEventsAtVenue, googleMapsUrl } from "@/lib/events/service";
 import type { Event } from "@/lib/events/types";
 
@@ -30,7 +32,7 @@ export default async function EventDetailPage({ params }: PageProps<"/events/[id
     event = await getEvent(id);
   } catch (error) {
     console.error("Unable to render event details:", error);
-    return <main className="detail-main"><div className="shell"><ErrorState /></div></main>;
+    return <main className="detail-main" id="main-content"><div className="shell"><ErrorState /></div></main>;
   }
   if (!event) notFound();
 
@@ -42,12 +44,16 @@ export default async function EventDetailPage({ params }: PageProps<"/events/[id
   }
   const price = formatPrice(event);
   const address = fullAddress(event);
+  const date = formatEventDay(event.startDateTime);
 
   return (
-    <main className="detail-main">
+    <main className="detail-main" id="main-content">
       <div className="shell">
-        <Link className="back-link focus-ring" href="/">← Back to all events</Link>
-        <article>
+        <div className="detail-utility-row">
+          <Link className="back-link focus-ring" href="/">← Back to SCENE</Link>
+          <p>LISTING / {event.source.toUpperCase()}</p>
+        </div>
+        <article className="detail-article">
           <div className="detail-hero">
             <div className="detail-image-wrap">
               <EventImage
@@ -59,55 +65,54 @@ export default async function EventDetailPage({ params }: PageProps<"/events/[id
               />
             </div>
             <div className="detail-intro">
-              <CategoryBadge category={event.category} />
+              <div className="detail-kicker">
+                <CategoryBadge category={event.category} />
+                <span>{event.address.stateCode === "NJ" ? "NORTH JERSEY" : "NYC"}</span>
+              </div>
+              <p className="detail-date-block"><span>{date.weekday}</span><b>{date.day}</b><em>{date.month}</em></p>
               <h1>{event.name}</h1>
-              <p className="detail-date">{formatEventDateLong(event.startDateTime)}</p>
-              <p className="detail-time">
-                {event.timeTBD ? "Time to be announced" : formatEventTime(event.startDateTime)}
+              <p className="detail-when">
+                {formatEventDateLong(event.startDateTime)} / {event.timeTBD ? "TIME TBA" : formatEventTime(event.startDateTime)}
               </p>
-              <a
-                className="button button-accent detail-ticket focus-ring"
-                href={event.ticketUrl}
-                target="_blank"
-                rel="noopener noreferrer sponsored"
-              >
-                Get tickets from provider <span aria-hidden="true">↗</span>
-              </a>
-              <p className="purchase-note">You’ll complete your purchase with the original ticket provider.</p>
+              <div className="detail-actions">
+                <a className="button button-yellow focus-ring" href={event.ticketUrl} target="_blank" rel="noopener noreferrer sponsored">
+                  Get tickets <span aria-hidden="true">↗</span>
+                </a>
+                <SaveButton event={event} />
+                <ShareButton
+                  title={`${event.name} | SCENE`}
+                  text={`${event.name} at ${event.venueName} on ${formatEventDateLong(event.startDateTime)}.`}
+                />
+              </div>
+              <p className="purchase-note">Purchase happens with the original provider. SCENE does not sell tickets.</p>
             </div>
           </div>
 
           <div className="detail-content-grid">
             <section className="detail-section" aria-labelledby="about-event">
-              <p className="eyebrow">About the event</p>
-              <h2 id="about-event">What to know</h2>
+              <p className="section-index">THE LOWDOWN</p>
+              <h2 id="about-event">WHAT TO KNOW</h2>
               <p className="event-description">{event.description}</p>
-              <p className="source-note">Event information provided by {event.source}.</p>
+              <p className="source-note">Listing information provided by {event.source}.</p>
             </section>
 
             <aside className="event-facts" aria-label="Event details">
               <dl>
                 <div>
-                  <dt>When</dt>
-                  <dd>{formatEventDateLong(event.startDateTime)}<br />
-                    {event.timeTBD ? "Time TBA" : formatEventTime(event.startDateTime)}
-                  </dd>
+                  <dt>WHEN</dt>
+                  <dd>{formatEventDateLong(event.startDateTime)}<br />{event.timeTBD ? "Time TBA" : formatEventTime(event.startDateTime)}</dd>
                 </div>
                 <div>
-                  <dt>Venue</dt>
-                  <dd>{event.venueName}</dd>
+                  <dt>WHERE</dt>
+                  <dd>{event.venueName}<br />{event.city}, {event.address.stateCode}</dd>
                 </div>
                 <div>
-                  <dt>Address</dt>
-                  <dd>
-                    <a className="text-link focus-ring" href={googleMapsUrl(event)} target="_blank" rel="noopener noreferrer">
-                      {address} <span aria-hidden="true">↗</span>
-                    </a>
-                  </dd>
+                  <dt>MAP</dt>
+                  <dd><a className="text-link focus-ring" href={googleMapsUrl(event)} target="_blank" rel="noopener noreferrer">{address} <span aria-hidden="true">↗</span></a></dd>
                 </div>
                 <div>
-                  <dt>Price</dt>
-                  <dd>{price ?? "See Ticketmaster for current pricing"}</dd>
+                  <dt>PRICE</dt>
+                  <dd>{price ?? "Current pricing at provider"}</dd>
                 </div>
               </dl>
             </aside>
@@ -116,9 +121,12 @@ export default async function EventDetailPage({ params }: PageProps<"/events/[id
 
         {venueEvents.length ? (
           <section className="venue-events" aria-labelledby="venue-events-heading">
-            <div className="section-heading">
-              <p className="eyebrow">Keep the night going</p>
-              <h2 id="venue-events-heading">More at {event.venueName}</h2>
+            <div className="section-masthead">
+              <div>
+                <p className="section-index">STAY IN THE ROOM</p>
+                <h2 id="venue-events-heading">MORE AT<br />{event.venueName}</h2>
+              </div>
+              <p>More upcoming listings at the same venue.</p>
             </div>
             <div className="event-grid venue-grid">
               {venueEvents.map((venueEvent) => <EventCard event={venueEvent} key={venueEvent.id} />)}

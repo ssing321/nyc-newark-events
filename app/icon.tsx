@@ -13,16 +13,17 @@ export default function Icon() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          borderRadius: 16,
-          background: "#102a2c",
-          color: "#dfff64",
+          background: "#ffd400",
+          color: "#11100d",
           fontFamily: "sans-serif",
-          fontSize: 26,
+          fontSize: 40,
           fontWeight: 900,
-          letterSpacing: -2,
+          letterSpacing: -4,
+          position: "relative",
         }}
       >
-        N+
+        S
+        <span style={{ position: "absolute", right: 5, top: 1, fontSize: 18, letterSpacing: 0 }}>↗</span>
       </div>
     ),
     size,
