@@ -1,36 +1,158 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NYC + Newark Events
 
-## Getting Started
+A polished event-discovery application for finding upcoming sports, concerts, theatre, comedy, family, and other live events across New York City and Newark/North Jersey.
 
-First, run the development server:
+Event listings come from Ticketmaster. The application does not sell tickets: every purchase link sends the visitor to the original provider.
+
+## Architecture
+
+The application uses the Next.js App Router and keeps the data boundary on the server:
+
+1. Server Components or Route Handlers call the event service.
+2. The event service queries one or more `EventProvider` implementations.
+3. Each provider maps its response into the provider-neutral `Event` model.
+4. Results are geographically constrained, deduplicated, filtered, sorted, and paginated.
+5. UI components receive normalized event data only—never provider payloads or credentials.
+
+NYC and Newark/North Jersey are queried as separate, state-constrained geographic regions. This improves coverage of venues on both sides of the Hudson while preventing Manhattan results from leaking into the Newark filter. Provider pages are normalized before being placed in Next.js's 15-minute server cache; the API key never becomes part of a cached URL or client response.
+
+## Tech stack
+
+- Next.js 16 with App Router and React Server Components
+- React 19
+- TypeScript (strict mode)
+- Tailwind CSS 4 toolchain plus a small, token-based product stylesheet
+- Ticketmaster Discovery API
+- Vercel-compatible server rendering and caching
+
+No database, authentication system, analytics SDK, map SDK, external cache, or paid search service is used.
+
+## Requirements
+
+- Node.js 20.9 or later
+- npm
+- A free Ticketmaster developer API key
+
+## Ticketmaster API key setup
+
+1. Create a Ticketmaster developer account and obtain a Discovery API consumer key.
+2. Copy the example environment file:
+
+   ```bash
+   cp .env.example .env.local
+   ```
+
+3. Put the key in `.env.local`:
+
+   ```dotenv
+   TICKETMASTER_API_KEY=your_consumer_key_here
+   ```
+
+`TICKETMASTER_API_KEY` is referenced only by server-only provider code. It is never prefixed with `NEXT_PUBLIC_`, returned by an API route, or included in client-side JavaScript.
+
+## Environment variables
+
+| Variable | Required | Scope | Purpose |
+| --- | --- | --- | --- |
+| `TICKETMASTER_API_KEY` | Yes | Server only | Authenticates Discovery API requests |
+
+## Local development
 
 ```bash
+npm install
+cp .env.example .env.local
+# Add the Ticketmaster key to .env.local
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+URL filters are shareable. For example:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```text
+/?area=new-york&category=sports&range=week&q=knicks
+```
 
-## Learn More
+## Production build
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run lint
+npm run build
+npm start
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Deployment to Vercel
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Push the repository to a GitHub Free repository.
+2. In Vercel, choose **Add New → Project** and import that repository.
+3. Keep the detected framework preset as **Next.js**.
+4. Add `TICKETMASTER_API_KEY` under **Project Settings → Environment Variables** for Production (and Preview if desired).
+5. Deploy. The default `*.vercel.app` address is sufficient; no custom domain is required.
 
-## Deploy on Vercel
+The application uses standard Next.js server APIs and does not require additional Vercel products.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Project structure
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```text
+app/
+  api/events/             Validated, credential-safe JSON Route Handlers
+  events/[id]/            Event detail route and loading/not-found states
+  error.tsx               Friendly route error boundary
+  loading.tsx             Catalog loading shell
+components/               Reusable UI and small interactive client boundaries
+lib/
+  dates/                  America/New_York parsing and formatting
+  events/
+    providers/            Provider implementations
+    types.ts              Normalized domain model and provider contract
+    normalize.ts          Ticketmaster-to-domain mapping
+    dedupe.ts             Cross-provider event deduplication
+    query.ts              Query parameter validation/sanitization
+    service.ts            Search, filtering, pagination, and provider orchestration
+```
+
+## Provider abstraction
+
+`EventProvider` defines three operations:
+
+- `searchEvents(input)`
+- `getEvent(id)`
+- `getVenueEvents(venueId, startDateTime)`
+
+Ticketmaster-specific response types and mapping stay in `lib/events/providers/ticketmaster.ts` and `lib/events/normalize.ts`. UI code depends only on the normalized `Event` interface. The service already merges and deduplicates results returned by its provider list.
+
+### Adding another provider
+
+1. Add a provider class in `lib/events/providers/` that implements `EventProvider`.
+2. Normalize all results into `Event`; do not leak provider-specific types into components.
+3. Add the provider to the `providers` array in `lib/events/service.ts`.
+4. Add only its server-side environment variable to `.env.example` and the Vercel project.
+5. Confirm ticket URLs point to the originating provider and update source attribution if needed.
+6. Review the new provider’s free-tier and credential requirements before enabling it.
+
+The existing event fingerprint—normalized name, venue, and start time—deduplicates overlapping provider results.
+
+## Cost
+
+**Intended operating cost: $0/month.**
+
+- **Ticketmaster Discovery API:** uses the provider’s free/default developer access. Availability and request limits remain subject to Ticketmaster’s developer terms. Fifteen-minute normalized-page caching, adaptive provider pagination, and provider-side classification/search filters reduce API calls. No payment details are required by this application.
+- **Vercel:** suitable for the Hobby/free tier while this remains a personal, non-commercial project. Usage must stay within Vercel’s current Hobby limits and terms.
+- **GitHub:** source control works with a GitHub Free repository.
+- **Maps:** venue links use ordinary Google Maps search URLs generated from the address. There is no Maps API integration or key.
+- **Images:** remote Ticketmaster images are optimized by Next.js. There is no paid image service.
+- **Search, caching, and data:** implemented in the application with Next.js/Vercel caching. There is no database, Redis instance, hosted search, authentication, paid analytics, monitoring, background jobs, or AI API.
+- **Domain:** the free Vercel `*.vercel.app` hostname is sufficient.
+
+If traffic grows beyond the free allowances, the application should be re-evaluated before any paid service is introduced. It does not automatically require or activate a paid dependency.
+
+## Data and behavior notes
+
+- Default results cover approximately the next 30 days and are sorted chronologically.
+- Results are fetched adaptively in 100-item provider pages. High-volume searches are partitioned into chronological date windows so Ticketmaster's 1,000-result deep-paging ceiling cannot silently hide the remainder of a 30-day range. A normal combined catalog view makes one request per geographic region, while deeper “Load more” navigation requests additional cached pages/windows only when needed.
+- Provider counts display with a `+` while more cached or upstream pages remain. Counts become exact after the selected range is exhausted.
+- Custom date ranges are capped at 90 days.
+- Dates and times render in `America/New_York`.
+- Descriptions use Ticketmaster information/notes when available; otherwise they are generated deterministically from normalized event fields.
+- The catalog and detail pages display friendly empty, loading, not-found, and provider-error states.
+- Provider fetches revalidate approximately every 15 minutes. Browser-facing API responses also advertise a 15-minute CDN cache window.
