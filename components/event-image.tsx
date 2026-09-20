@@ -7,11 +7,11 @@ interface EventImageProps {
   src?: string;
   alt: string;
   category: string;
-  priority?: boolean;
+  eager?: boolean;
   sizes: string;
 }
 
-export function EventImage({ src, alt, category, priority = false, sizes }: EventImageProps) {
+export function EventImage({ src, alt, category, eager = false, sizes }: EventImageProps) {
   const [failed, setFailed] = useState(false);
 
   if (!src || failed) {
@@ -30,7 +30,8 @@ export function EventImage({ src, alt, category, priority = false, sizes }: Even
       alt={alt}
       fill
       sizes={sizes}
-      priority={priority}
+      loading={eager ? "eager" : "lazy"}
+      fetchPriority={eager ? "high" : undefined}
       onError={() => setFailed(true)}
     />
   );

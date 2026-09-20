@@ -24,14 +24,12 @@ export function formatPrice(event: Event) {
 
 interface EventCardProps {
   event: Event;
-  priority?: boolean;
   label?: string;
   featured?: boolean;
 }
 
 export function EventCard({
   event,
-  priority = false,
   label,
   featured = false,
 }: EventCardProps) {
@@ -48,7 +46,6 @@ export function EventCard({
             alt={`${event.name} at ${event.venueName}`}
             category={event.category}
             sizes="(max-width: 680px) 100vw, (max-width: 1080px) 50vw, 33vw"
-            priority={priority}
           />
         </Link>
         <div className="card-save"><SaveButton event={event} compact /></div>

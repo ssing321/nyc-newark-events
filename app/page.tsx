@@ -82,7 +82,6 @@ function DiscoveryGrid({
               featured={indexValue === 0}
               key={event.id}
               label={editorialLabel(event, mode)}
-              priority={indexValue < 2}
             />
           ))}
         </div>
@@ -214,8 +213,8 @@ export default async function Home({ searchParams }: PageProps<"/">) {
                 <p>{filters.mode === "under-50" ? "KNOWN MINIMUM PRICE ≤ $50" : "SOONEST FIRST"}</p>
               </div>
               <div className="event-grid">
-                {result.events.map((event, index) => (
-                  <EventCard key={event.id} event={event} priority={index < 3} />
+                {result.events.map((event) => (
+                  <EventCard key={event.id} event={event} />
                 ))}
               </div>
               {result.hasMore ? (

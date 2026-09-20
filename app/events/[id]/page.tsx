@@ -61,7 +61,7 @@ export default async function EventDetailPage({ params }: PageProps<"/events/[id
                 alt={`${event.name} at ${event.venueName}`}
                 category={event.category}
                 sizes="(max-width: 900px) 100vw, 58vw"
-                priority
+                eager
               />
             </div>
             <div className="detail-intro">
